@@ -4,7 +4,12 @@ import ReactDOM from 'react-dom/client';
 import NgComponent from 'ngcomponent';
 import { ErrorBoundary } from 'react-error-boundary';
 
+import BrowserRouterWithRootScope from './BrowserRouterWithRootScope';
+
 export type AnyProps = Record<string, unknown>;
+
+export const defaultInjectNames = ['$rootScope'] as const;
+export type DefaultInjectNames = (typeof defaultInjectNames)[number];
 
 /**
  * Mounts a React component inside AngularJS as an AngularJS component.
@@ -21,11 +26,13 @@ function reactAngularAdapter<Props extends AnyProps = AnyProps>(
   Component: React.FC<Props>,
   options?: {
     bindingNames?: Array<keyof Props>;
-    injectNames?: Array<keyof Props>;
+    injectNames?: Array<DefaultInjectNames | keyof Props>;
+    routes?: string[];
   },
 ): IComponentOptions {
   const bindingNames = options?.bindingNames ?? [];
   const injectNames = options?.injectNames ?? [];
+  const routes = options?.routes;
 
   return {
     bindings: Object.fromEntries(bindingNames.map(name => [name, '<'])),
@@ -60,7 +67,9 @@ function reactAngularAdapter<Props extends AnyProps = AnyProps>(
 
           this.root.render(
             <SharedErrorBoundary name={Component.name}>
-              <Component {...props} />
+              <BrowserRouterWithRootScope rootScope={props.$rootScope} routes={routes}>
+                <Component {...props} />
+              </BrowserRouterWithRootScope>
             </SharedErrorBoundary>
           )
         }

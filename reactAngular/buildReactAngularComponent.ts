@@ -1,5 +1,5 @@
 import angular from 'angular';
-import reactAngularAdapter, { AnyProps } from './reactAngularAdapter';
+import reactAngularAdapter, { AnyProps, defaultInjectNames } from './reactAngularAdapter';
 import React from 'react';
 
 interface Options<Props> {
@@ -19,6 +19,10 @@ interface Options<Props> {
    * AngularJS names to inject into the directive.
    */
   injectNames?: (keyof Props)[];
+  /**
+   * Routes to use for React Router.
+   */
+  routes?: string[];
   /**
    * AngularJS scope object for the directive.
    */
@@ -47,6 +51,7 @@ function buildReactAngularComponent<Props extends AnyProps = AnyProps>(
     controller,
     injectModules = [],
     injectNames = [],
+    routes,
     scope = {},
     templateDivAttributes,
   } = options;
@@ -72,7 +77,8 @@ function buildReactAngularComponent<Props extends AnyProps = AnyProps>(
       componentName,
       reactAngularAdapter(Component, {
         bindingNames: Object.keys(bindings),
-        injectNames: injectNames,
+        injectNames: [...defaultInjectNames, ...injectNames],
+        routes: routes,
       }),
     )
     .directive(directiveName, directive).name;

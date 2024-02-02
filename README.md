@@ -617,8 +617,83 @@ As this is your tool to create, you can include any steps that you see would be 
 
 ## React pages inside AngularJS
 
+In order to have React pages running inside AngularJS, we need to pass control from UI-Router to React Router. For this purpose, `buildReactAngularComponent` and `reactAngularAdapter` already provide support for routes.
+
+Example usage:
+
+```js
+const fooPageComponent = buildReactAngularComponent(
+  'foo.fooPage',
+  'fooPage',
+  FooPage,
+  {
+    routes: ['/:barId/foo/*']
+  }
+)
+
+// change config to use templateProvider and controllerProvider instead of template and controller
+config.$inject = ['$stateProvider'];
+function config($stateProvider) {
+  $stateProvider.state('foo-page', {
+    url: '/:barId/foo',
+    templateProvider: [
+      '$rootScope',
+      function ($rootScope) {
+        return $rootScope.features[FEATURE_FLAG]
+          ? '<foo-page></foo-page>'
+          : require('../foo-page-old/foo-page.html');
+      },
+    ],
+    controllerProvider: [
+      '$rootScope',
+      function ($rootScope) {
+        return $rootScope.features[FEATURE_FLAG] ? 'FooPageReactController' : 'FooPageController';
+      }
+    ],
+  });
+}
+
+// change the controller for the AngularJS implementation to have featureFlagWatcher
+FooPageController.$inject = ['$rootScope', '$state'];
+function FooPageController($rootScope, $state) {
+  /** ... **/
+  featureFlagWatcher($rootScope, $state);
+}
+
+FooPageReactController.$inject = ['$rootScope', '$state'];
+function FooPageReactController($rootScope, $state) {
+  featureFlagWatcher($rootScope, $state);
+}
+
+const featureFlagWatcher = ($rootScope, $state) => {
+  let featureFlagEnabled = $rootScope.features[FEATURE_FLAG];
+  $rootScope.$watch('features', function (features) {
+    if (featureFlagEnabled !== features[FEATURE_FLAG]) {
+      featureFlagEnabled = features[FEATURE_FLAG];
+      $state.reload();
+    }
+  });
+};
+```
+
 ## AngularJS components inside React
 
-[angular2react](https://github.com/coatue-oss/angular2react)
+There is an existing library [angular2react](https://github.com/coatue-oss/angular2react), but it is not compatible with the latest versions of React. As an alternative approach, we will use the AngularJS root application to render components inside React.
+
+Note that these instructions only detail how to do this once the AngularJS application has been minimized, most of the application is already functional in React and `reactAngular` files are no longer needed going forward. However, mounting AngularJS components inside React should be viable in any case by adapting these instructions.
+
+### Minimal AngularJS root application
+
+The suggested approach is to strip the AngularJS application into a minimal husk that only mounts the React app inside it and provides a service for rendering any remaining AngularJS components inside the React app structure.
+
+Again, this is highly dependent on your project structure, but you should start by extracting all parts of your `index.js` that are used only with the AngularJS app (routing, page controllers) to a separate module. `index.js` should then only control the very basics of the application that are needed to render an application. Then you should create another module which only mounts the React app and requires any dependencies needed for the remaining AngularJS components. `index.js` will then control which of the app modules to run. This works best with a feature flag system.
+
+Here it is important to note how AngularJS imports work: the required modules of all linked modules in the application are always loaded, even in this case where there are two app branches and only one is executed at once. As a result, some modules may rely on dependencies that are not written in the module file, and removing an unrelated module which loads those dependencies may cause it to stop working.
+
+Partial example code for creating the React app with support for rendering legacy AngularJS components is available in [angularReact/](./angularReact/). You need to apply `partial-reactApp.tsx` to your new React app module and add any services and handlers required by your application.
 
 ## Delete AngularJS
+
+Once all features have React counterparts and your React app is fully functional, as a last step in this conversion, delete your AngularJS code and/or remove any of its dependencies from your project.
+
+Lights out!
