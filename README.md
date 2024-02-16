@@ -1,6 +1,10 @@
 # Migration from AngularJS to React
 
-This document, designed specifically for seasoned React developers, delves into a structured, multi-phased approach for migrating an AngularJS application to the React ecosystem. It outlines a series of hybrid configurations, allowing for a gradual and controlled transition. Considering the key differences between AngularJS (a framework) and React (a library), this migration calls for a thoughtful redesign and rewrite of important areas of your application.
+Greetings! Starting a migration from AngularJS to React is like setting off for a beach holiday, but ending up on a desert trek. But fear not, this document is your guide to navigating the sands. We outline a structured, multi-phased approach to simplify the migration process. Through a series of hybrid configurations, we offer a pathway for a gradual and controlled transition, blending the old with the new. While advanced knowledge of React is assumed, we also provide a refresher on AngularJS essentials to ensure you're fully equipped for the journey ahead. Let's turn this daunting trek into a successful expedition!
+
+## Your feedback is valuable
+
+Before we dive in, remember this guide is a static reference, not frequently updated, and might not cover every case. Your experiences and insights shared on GitHub are crucial, enriching this resource for all. Let's make it a collaborative effort to enhance and keep it relevant for future journeys.
 
 ## Understanding AngularJS
 
@@ -23,6 +27,7 @@ To learn more, please read through the [Core Concepts](https://docs.angularjs.or
   - Markers on DOM elements (such as elements, attributes, CSS, and more) that tell AngularJS's HTML compiler to attach a specified behavior to that DOM element or even transform the DOM element and its children.
   - [What are Directives?](https://docs.angularjs.org/guide/directive#what-are-directives-)
 - **Scopes**
+  - AngularJS scopes link controllers and views, managing data and event propagation.
   - [What are Scopes?](https://docs.angularjs.org/guide/scope)
   - **$rootScope**
     - The highest-level scope in AngularJS, which acts as the parent scope for all other scopes within an application. It's akin to a global scope and can be injected and accessed throughout the application. $rootScope is created during the AngularJS application's bootstrapping process and can be used to store and manage global state or publish and subscribe to events. However, it's generally advisable to use it sparingly to avoid polluting the global state and potentially creating hard-to-track dependencies and interactions in larger applications.
@@ -98,7 +103,7 @@ Recognizing these differences will help you to make the migration process more s
 
 ### Install React
 
-This guide assumes that your AngularJS project uses npm and is bundled with Webpack. If your project is using a different build system, you need to adapt these instructions differently. In order to begin, you should add React as a dependency to your AngularJS project with `npm install react react-dom`.
+This guide assumes that your AngularJS project uses `npm` and is bundled with `Webpack`. If your project is using a different build system, you need to adapt these instructions differently. In order to begin, you should add React as a dependency to your AngularJS project with `npm install react react-dom`.
 
 ### Recommended: Testing and types
 
@@ -129,7 +134,7 @@ By incrementally increasing the role of React and carefully managing the interac
 
 ## React components inside AngularJS
 
-In order to have React components inside AngularJS, React can simply render to DOM elements within the AngularJS app DOM tree. You can also have multiple React instances in the same application with trivial performance effects.
+In order to have React components inside AngularJS, React can simply render to DOM elements within the AngularJS app DOM tree. You can have multiple React instances in the same application with trivial performance effects.
 
 In order to mount React inside AngularJS, you will need an adapter. There are several existing libraries such as [ngReact](https://github.com/ngReact/ngReact) and [react2angular](https://github.com/coatue-oss/react2angular), but these do not work with the latest versions of React.
 
@@ -143,7 +148,7 @@ Copy the base code to a location within your codebase. If you do not use TypeScr
 
 #### reactAngularAdapter usage
 
-You can create a new module, component and directive as follows:
+You can create a new module, component and directive as follows (replace any `#special#` sections accordingly):
 
 ```js
 angular
@@ -309,7 +314,7 @@ In order to have a clean and functional new React app without any legacy hurdles
 
 The technology choices are left to the reader. Note that Create React App is no longer maintained, and instead you should consider one of the suggested options in [react.dev](https://react.dev/learn/start-a-new-react-project) or use Vite with React.
 
-Choose your core libraries according to your needs, but for this migration guide, we'll focus on React Query for efficient server-state management and Tailwind CSS for utility-first styling as examples.
+Choose your core libraries according to your needs, but for this migration guide, we'll focus on React Query for efficient server-state management and Tailwind CSS for utility-first styling as examples. Remember to give feedback based on your experience.
 
 ## Importing code between apps
 
@@ -318,8 +323,8 @@ Sharing code between the AngularJS and React applications can streamline the mig
 The following steps assume the following directory structure and configurations:
 
 - The AngularJS project uses Webpack, and its configuration is at the root of the project.
-- The React project, named react-app, is located adjacent to the AngularJS project folder.
-- The React project uses src as the source folder for its codebase.
+- The React project, named `react-app`, is located adjacent to the AngularJS project folder.
+- The React project uses `src` as the source folder for its codebase.
 
 ### Adding import alias to Webpack config
 
@@ -448,7 +453,9 @@ There can also be only one page controller active at a time as its scope is shar
 
 ## Automating conversion steps
 
-In order to make the React conversion process more streamlined in a large codebase, you should consider creating automation tools. Unfortunately this step is highly dependent on the structure of your project, so all that is provided are some basic pointers and examples.
+In order to make the React conversion process more streamlined in a large codebase, you should consider creating automation tools. While developing these tools can initially be time-consuming, their proper implementation can shave minutes or hours off each subsequent conversion task and significantly minimize the risk of human error.
+
+Unfortunately this step is highly dependent on the structure of your project, so all that is provided are some basic pointers and examples.
 
 Start by creating a Node.js command line script file. This can be placed in either the new project or the old project.
 
@@ -619,6 +626,8 @@ As this is your tool to create, you can include any steps that you see would be 
 
 In order to have React pages running inside AngularJS, we need to pass control from UI-Router to React Router. For this purpose, `buildReactAngularComponent` and `reactAngularAdapter` already provide support for routes.
 
+In this example, we have a feature flag mapping in `$rootScope` and use it to toggle between the implementations. You need to adapt this part to however your project does feature flagging or toggling.
+
 Example usage:
 
 ```js
@@ -680,7 +689,7 @@ const featureFlagWatcher = ($rootScope, $state) => {
 
 There is an existing library [angular2react](https://github.com/coatue-oss/angular2react), but it is not compatible with the latest versions of React. As an alternative approach, we will use the AngularJS root application to render components inside React.
 
-Note that these instructions only detail how to do this once the AngularJS application has been minimized, most of the application is already functional in React and `reactAngular` files are no longer needed going forward. However, mounting AngularJS components inside React should be viable in any case by adapting these instructions.
+Note that these instructions only detail how to do this once the AngularJS application has been minimized, most of the application is already functional in React and `reactAngular` files are no longer needed going forward. However, mounting AngularJS components inside React should be viable already earlier in the process by adapting these instructions.
 
 ### Minimal AngularJS root application
 
@@ -688,12 +697,14 @@ The suggested approach is to strip the AngularJS application into a minimal husk
 
 Again, this is highly dependent on your project structure, but you should start by extracting all parts of your `index.js` that are used only with the AngularJS app (routing, page controllers) to a separate module. `index.js` should then only control the very basics of the application that are needed to render an application. Then you should create another module which only mounts the React app and requires any dependencies needed for the remaining AngularJS components. `index.js` will then control which of the app modules to run. This works best with a feature flag system.
 
-Here it is important to note how AngularJS imports work: the required modules of all linked modules in the application are always loaded, even in this case where there are two app branches and only one is executed at once. As a result, some modules may rely on dependencies that are not written in the module file, and removing an unrelated module which loads those dependencies may cause it to stop working.
+Here it is important to note how AngularJS imports work: the required modules of all linked modules in the application are always loaded, even in this case where there are two app branches and only one is executed at once. As a result, some modules may rely on dependencies that are not written in the module file, and removing an unrelated module which loads those dependencies may cause it to stop working. Keep this in mind.
 
 Partial example code for creating the React app with support for rendering legacy AngularJS components is available in [angularReact/](./angularReact/). You need to apply `partial-reactApp.tsx` to your new React app module and add any services and handlers required by your application.
 
 ## Delete AngularJS
 
-Once all features have React counterparts and your React app is fully functional, as a last step in this conversion, delete your AngularJS code and/or remove any of its dependencies from your project.
+Once all features have React counterparts and your React app is fully functional, you've finally reached the oasis after your long desert trek.
 
-Lights out!
+The final step in this conversion involves cleaning up: deleting your AngularJS code and/or removing any of its dependencies from your project. This action not only signifies the successful completion of your migration but also optimizes your project's performance and maintainability.
+
+With the AngularJS code and dependencies removed, your project stands ready for the future. We wish you the best of luck in your ongoing and future endeavors with your newly optimized React application. May your development journey be fruitful and your code robust. Happy coding!

@@ -10,7 +10,7 @@ import QueryClientProvider from '../reactAngular/QueryClientProvider'
 
 export default angular
   .module('reactApp', [
-    /* any depenbdencies */
+    /* any dependencies */
   ])
   /* add a .config() block if needed */
   .service('ReactAppRunner', runner).name;
